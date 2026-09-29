@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHAKTI DHOOP | Interactive Agarbatti Dryer</title>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#09131e;--card:#112235;--line:#294057;
+  --text:#eaf3fb;--muted:#a9bfd0;--accent:#71e4b7;
+}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,Segoe UI,Arial,sans-serif}
+header{height:78px;padding:15px 24px;display:flex;
+  justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--line);gap:12px}
+h1{font-size:23px;margin:0;letter-spacing:-.6px}
+h1 .brand-main{color:var(--accent)}
+h1 .by-brand{
+  color:var(--accent);
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0;
+  margin-left:3px;
+}
+.sub{color:var(--muted);font-size:12px;margin-top:5px}
+.badge{border:1px solid #355647;border-radius:30px;
+  color:var(--accent);padding:8px 12px;font-size:11px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 370px;
+  height:calc(100dvh - 78px)}
+.stage{position:relative;min-height:440px;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.topbar{position:absolute;top:17px;left:18px;right:18px;
+  display:flex;justify-content:space-between;gap:10px;
+  pointer-events:none}
+.pill{background:#0a1729de;border:1px solid #35516b;
+  border-radius:9px;padding:9px 12px;font-size:12px}
+#weather{color:#ffe19a}
+.legend{position:absolute;left:18px;bottom:58px;
+  background:#091625d9;padding:11px;border-radius:10px;
+  font-size:11px;line-height:1.9;pointer-events:none}
+.dot{display:inline-block;width:8px;height:8px;
+  border-radius:50%;margin-right:7px}
+.tools{position:absolute;bottom:13px;left:16px;right:16px;
+  display:flex;gap:6px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;color:var(--text);
+  background:#173047;border:1px solid #35516a;
+  border-radius:8px;padding:9px 11px;transition:.2s}
+button:hover{background:#23465d}
+button:focus-visible{outline:2px solid #71e4b7;outline-offset:2px}
+.tools button{font-size:11px;background:#0d2034ed}
+aside{padding:18px;overflow:auto;background:#0d1b2b;
+  border-left:1px solid var(--line)}
+.section{font-size:10px;letter-spacing:1.6px;color:var(--muted);
+  text-transform:uppercase;margin:3px 0 11px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode{text-align:left;min-height:62px;font-size:12px}
+.mode small{display:block;margin-top:5px;color:var(--muted);font-size:10px}
+.mode.active{border-color:var(--accent);background:#153e3c}
+#tour{width:100%;margin:9px 0 17px;background:#216d59;border-color:#43a78b}
+.card{background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:14px;margin-bottom:12px}
+h2{font-size:18px;margin:0 0 8px}
+p{font-size:12px;line-height:1.7;margin:7px 0;color:#c5d7e5}
+#steps{padding-left:19px;margin:10px 0;font-size:12px;
+  line-height:1.7;color:#d2e3ee}
+#steps li{margin-bottom:6px}
+.flow{font-size:11px;color:#8de8c6;line-height:1.7;
+  padding:9px;background:#0a1d2c;border-radius:7px}
+.note{font-size:11px;color:#efd2a2;border-left:2px solid #d4a65d;
+  padding-left:9px;line-height:1.6;margin-top:11px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.metric{background:#091a29;border-radius:7px;padding:10px}
+.metric strong{display:block;font-size:16px}
+.metric small{color:var(--muted);font-size:10px}
+label{font-size:12px;display:inline-flex;align-items:center;gap:6px}
+.voice-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.voice-row button{font-size:11px;padding:7px}
+#progress{height:3px;background:#243e50;margin-top:12px;border-radius:3px}
+#progress div{height:100%;width:0;background:var(--accent)}
+#inspectTitle{font-size:13px;color:#80dfed;margin:0 0 7px}
+#load{position:absolute;inset:0;display:grid;place-items:center;
+  background:#09131e;z-index:10;padding:35px;text-align:center}
+footer{font-size:10px;color:#8fa6ba;line-height:1.6}
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;height:auto}
+  .stage{height:62dvh;min-height:460px}
+  aside{border-left:0;border-top:1px solid var(--line)}
+  header{padding:12px 16px}
+  .badge{display:none}
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div>
+    <h1>SHAKTI <span class="brand-main">DHOOP</span> <small class="by-brand">by H14_SPIRIT</small></h1>
+    <div class="sub">Solar agarbatti drying</div>
+  </div>
+  <div class="badge">INTERACTIVE CONCEPT / NOT MEASURED PERFORMANCE</div>
+</header>
+
+<div class="layout">
+  <main class="stage" id="stage" aria-label="Interactive 3D dryer">
+    <div id="load">Loading the 3D model…</div>
+    <div class="topbar">
+      <div class="pill" id="weather">SUNNY DAY</div>
+      <div class="pill">Drag to orbit · Scroll to zoom · Click parts</div>
+    </div>
+
+    <div class="legend">
+      <div><i class="dot" style="background:#59cfff"></i>Incoming air</div>
+      <div><i class="dot" style="background:#ffab54"></i>Warm drying air</div>
+      <div><i class="dot" style="background:#b1ebff"></i>Moist exhaust</div>
+      <div><i class="dot" style="background:#80ffad"></i>Electrical energy</div>
+    </div>
+
+    <div class="tools">
+      <button id="home">Reset view</button>
+      <button id="lidBtn">Open lid</button>
+      <button id="cutBtn">Cutaway: OFF</button>
+      <button id="panelBtn">Retract solar panel</button>
+      <button id="packBtn">Packaging view</button>
+    </div>
+  </main>
+
+  <aside>
+    <div class="section">Choose operating conditions</div>
+    <div class="modes">
+      <button class="mode active" data-mode="0">☀ 1. Sunny day
+        <small>Direct solar heat + PV charging</small></button>
+      <button class="mode" data-mode="1">⛅ 2. Low sunlight
+        <small>Collector + stored heat support</small></button>
+      <button class="mode" data-mode="2">🌧 3. Rain / night
+        <small>Stored battery energy</small></button>
+      <button class="mode" data-mode="3">🔌 4. Extended rain
+        <small>Household supply backup</small></button>
+    </div>
+    <button id="tour">▶ 5. Run complete simulation</button>
+
+    <div class="card">
+      <h2 id="title"></h2>
+      <p id="intro"></p>
+      <div class="flow" id="flow"></div>
+      <ol id="steps"></ol>
+      <div class="note" id="caution"></div>
+      <div class="metrics">
+        <div class="metric"><strong>45–55°C</strong><small>Proposed range · verify by testing</small></div>
+        <div class="metric"><strong>6–7 h</strong><small>Proposed cycle · not a guarantee</small></div>
+      </div>
+      <div id="progress"><div></div></div>
+      <p id="tourStatus">Select a mode or start the guided tour.</p>
+    </div>
+
+    <div class="card">
+      <div class="voice-row">
+        <label><input id="voice" type="checkbox"> Voice narration</label>
+        <button id="speak">▶ Read explanation</button>
+        <button id="mute">■ Stop voice</button>
+      </div>
+      <p>Uses device text-to-speech. Voice availability depends on your browser.</p>
+      <label><input id="pcm" type="checkbox" checked> Show optional PCM storage</label>
+    </div>
+
+    <div class="card">
+      <h3 id="inspectTitle">Explore the system</h3>
+      <p id="inspectText">Click the glass, collector, fans, battery, heater,
+        sensors, trays, or solar panel to learn about that component.</p>
+    </div>
+
+    <footer>
+      Geometry follows your reference silhouette and sketch; dimensions are
+      illustrative. Animation does not calculate moisture, battery state,
+      temperature, solar yield, or shelf life. Packaging claims require testing.
+    </footer>
+  </aside>
+</div>
+
+<script>
+window.addEventListener("error", () => {
+  const el = document.getElementById("load");
+  if (el && el.style.display !== "none") {
+    el.textContent =
+      "The 3D engine could not start. Check your internet connection and WebGL support, " +
+      "or open this file through a local web server.";
+  }
+});
+</script>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const $ = id => document.getElementById(id);
+const stage = $("stage");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x101f30);
+scene.fog = new THREE.Fog(0x101f30, 17, 36);
+
+const camera = new THREE.PerspectiveCamera(43, 1, .1, 100);
+camera.position.set(7, 5.9, 8.8);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.25;
+stage.prepend(renderer.domElement);
+
+const controls = new OrbitControls(camera,renderer.domElement);
+controls.target.set(0,1.4,.4);
+controls.enableDamping = true;
+controls.minDistance = 3;
+controls.maxDistance = 18;
+controls.maxPolarAngle = Math.PI/2-.025;
+
+scene.add(new THREE.HemisphereLight(0xc3e7ff,0x354432,2.3));
+const sunLight = new THREE.DirectionalLight(0xffdfac,3);
+sunLight.position.set(-3,9,5);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(2048,2048);
+sunLight.shadow.camera.left = -9;
+sunLight.shadow.camera.right = 9;
+sunLight.shadow.camera.top = 9;
+sunLight.shadow.camera.bottom = -9;
+scene.add(sunLight);
+
+const fill = new THREE.DirectionalLight(0x8fc9ff,1.2);
+fill.position.set(6,4,-5);
+scene.add(fill);
+
+const mat = (color, extra={}) => new THREE.MeshStandardMaterial({
+  color, roughness:.55, metalness:.05, ...extra
+});
+const white = mat(0xe0e8df);
+const dark = mat(0x17232a);
+const steel = mat(0x81949e,{metalness:.65,roughness:.34});
+const black = mat(0x172022,{roughness:.85});
+const brown = mat(0x86603f);
+const green = mat(0x2d8872);
+const glass = mat(0xa0d9e5,{
+  transparent:true,opacity:.20,roughness:.15,
+  metalness:.1,depthWrite:false,side:THREE.DoubleSide
+});
+
+const dryer = new THREE.Group();
+scene.add(dryer);
+const pickables = [];
+const shells = [];
+const fans = [];
+const animatedPaths = [];
+
+function box(parent,w,h,d,x,y,z,material) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+  mesh.position.set(x,y,z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
+function cylinder(parent,r,h,x,y,z,material) {
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,32),material);
+  mesh.position.set(x,y,z);
+  mesh.castShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
+function interactive(object,title,text,action) {
+  object.userData.info = {title,text,action};
+  object.traverse(child=>{
+    if(child.isMesh) pickables.push(child);
+  });
+}
+function label(parent,text,x,y,z,width=1.5) {
+  const canvas = document.createElement("canvas");
+  canvas.width=640; canvas.height=110;
+  const c=canvas.getContext("2d");
+  c.fillStyle="rgba(7,22,35,0.90)";
+  c.beginPath();c.roundRect(2,2,636,106,20);c.fill();
+  c.strokeStyle="#456679";c.lineWidth=3;c.stroke();
+  c.textAlign="center";c.textBaseline="middle";
+  c.fillStyle="#e4f5ff";c.font="600 30px Arial";
+  c.fillText(text,320,56);
+  const tex=new THREE.CanvasTexture(canvas);
+  const sprite=new THREE.Sprite(new THREE.SpriteMaterial({
+    map:tex,depthTest:false,transparent:true
+  }));
+  sprite.position.set(x,y,z);
+  sprite.scale.set(width,width*110/640,1);
+  parent.add(sprite);
+  return sprite;
+}
+function quad(parent,points,material) {
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.Float32BufferAttribute(points.flat(),3));
+  geo.setIndex([0,1,2,0,2,3]);geo.computeVertexNormals();
+  const mesh=new THREE.Mesh(geo,material);
+  mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);
+  return mesh;
+}
+function curve(points) {
+  return new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+}
+function tube(parent,points,color,radius=.045) {
+  const path=curve(points);
+  const mesh=new THREE.Mesh(
+    new THREE.TubeGeometry(path,40,radius,10,false),
+    mat(color,{metalness:.4})
+  );
+  parent.add(mesh);
+  return path;
+}
+function movingPath(parent,points,color,enabled,count=12,radius=.035) {
+  const path=curve(points);
+  const line=new THREE.Mesh(
+    new THREE.TubeGeometry(path,45,.012,6,false),
+    new THREE.MeshBasicMaterial({color,transparent:true,opacity:.3})
+  );
+  parent.add(line);
+  const particles=[];
+  const geometry=new THREE.SphereGeometry(radius,8,6);
+  const material=new THREE.MeshBasicMaterial({color});
+  for(let i=0;i<count;i++){
+    const mesh=new THREE.Mesh(geometry,material);
+    parent.add(mesh);particles.push(mesh);
+  }
+  animatedPaths.push({path,line,particles,enabled});
+}
+function makeFan(parent,x,y,z,rotationY=0) {
+  const group=new THREE.Group();
+  group.position.set(x,y,z);group.rotation.y=rotationY;parent.add(group);
+  box(group,.42,.42,.10,0,0,0,dark);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.165,.017,8,32),steel);
+  ring.position.z=.065;group.add(ring);
+  const rotor=new THREE.Group();rotor.position.z=.07;group.add(rotor);
+  for(let i=0;i<4;i++){
+    const blade=box(rotor,.07,.15,.016,0,.085,0,steel);
+    const pivot=new THREE.Group();rotor.add(pivot);pivot.add(blade);
+    pivot.rotation.z=i*Math.PI/2;
+  }
+  const hub=new THREE.Mesh(new THREE.SphereGeometry(.045,12,8),dark);
+  rotor.add(hub);fans.push(rotor);
+  return group;
+}
+
+// Platform.
+box(scene,12,.16,10,0,-.11,.4,mat(0x1a2c39));
+const grid=new THREE.GridHelper(12,24,0x385262,0x243b4b);
+grid.position.y=-.023;scene.add(grid);
+
+// Stand and service shelf.
+for(const x of [-1.42,1.42]) for(const z of [-.9,.9]){
+  box(dryer,.10,1.17,.10,x,.59,z,steel);
+  cylinder(dryer,.10,.06,x,.03,z,dark);
+}
+box(dryer,3.0,.08,1.85,0,.34,0,steel);
+for(const z of [-.91,.91]) box(dryer,3,.08,.08,0,.84,z,steel);
+
+// Wedge body: front lower than rear, based on reference images.
+box(dryer,3.2,.12,2.2,0,1.25,0,white);
+const shellMat=white.clone();shellMat.side=THREE.DoubleSide;
+shells.push(
+  quad(dryer,[[-1.6,1.3,1.1],[1.6,1.3,1.1],[1.6,2.02,1.1],[-1.6,2.02,1.1]],shellMat),
+  quad(dryer,[[-1.6,1.3,-1.1],[-1.6,2.68,-1.1],[1.6,2.68,-1.1],[1.6,1.3,-1.1]],shellMat),
+  quad(dryer,[[-1.6,1.3,-1.1],[-1.6,1.3,1.1],[-1.6,2.02,1.1],[-1.6,2.68,-1.1]],shellMat),
+  quad(dryer,[[1.6,1.3,1.1],[1.6,1.3,-1.1],[1.6,2.68,-1.1],[1.6,2.02,1.1]],shellMat)
+);
+shells.forEach(s=>interactive(s,"Insulated HDPE enclosure",
+  "Wedge-shaped body with the sloped profile from your references. " +
+  "Use temperature-rated HDPE with suitable insulation. The heater needs a separated, guarded compartment."));
+
+label(dryer,"S H A K T I   D H O O P",0,1.67,1.13,1.5);
+
+// Bottom inlet slots.
+for(let i=0;i<8;i++) box(dryer,.17,.035,.035,-.75+i*.215,1.42,1.125,dark);
+
+// Sloping hinged glass assembly.
+const slope=Math.atan(.66/2.2);
+const lidLength=Math.hypot(2.2,.66);
+const lid=new THREE.Group();
+lid.position.set(0,2.68,-1.1);
+lid.rotation.x=slope;dryer.add(lid);
+const lidGlass=box(lid,3.05,.035,lidLength,0,0,lidLength/2,glass);
+for(const x of [-1.59,1.59]) box(lid,.13,.095,lidLength+.13,x,0,lidLength/2,dark);
+for(const z of [0,lidLength]) box(lid,3.3,.095,.13,0,0,z,dark);
+box(lid,.48,.07,.10,0,.08,lidLength-.10,steel);
+interactive(lid,"UV-filtering glazed lid",
+  "Click to open or close the lid. Solar radiation passes through suitable glazing " +
+  "and is converted to heat inside. UV filtering does not prevent all fragrance evaporation.",
+  ()=>toggleLid());
+
+// Two trays, four illustrative bundles on each.
+const trays=new THREE.Group();dryer.add(trays);
+for(let level=0;level<2;level++){
+  const y=1.66+level*.25;
+  const z=level===0?.05:-.12;
+  const depth=level===0?1.8:1.45;
+  for(const x of [-1.40,1.40]) box(trays,.045,.05,depth,x,y,z,steel);
+  for(const zz of [z-depth/2,z+depth/2]) box(trays,2.85,.05,.045,0,y,zz,steel);
+  for(let n=0;n<15;n++) box(trays,.014,.016,depth,-1.34+n*.191,y,z,steel);
+  for(let n=0;n<9;n++) box(trays,2.8,.012,.013,0,y,z-depth/2+n*depth/8,steel);
+  for(let bundle=0;bundle<4;bundle++){
+    const bx=-1.08+bundle*.71;
+    for(let stick=0;stick<8;stick++){
+      const ag=box(trays,.026,.025,depth*.77,
+        bx+(stick-3.5)*.054,y+.043,z,brown);
+      box(trays,.014,.017,.18,ag.position.x,y+.043,z+depth*.39,mat(0xcba370));
+    }
+  }
+}
+interactive(trays,"Two removable drying trays",
+  "Eight illustrative groups are shown across two mesh trays. Actual capacity requires " +
+  "dimensions and loading tests. Leave airflow gaps; avoid densely stacked wet sticks.");
+
+// PCM underneath trays.
+const pcmGroup=new THREE.Group();dryer.add(pcmGroup);
+for(let i=0;i<4;i++) box(pcmGroup,.58,.10,.76,-1.02+i*.68,1.39,-.12,mat(0x43b5a6));
+interactive(pcmGroup,"Optional phase-change storage",
+  "Sealed PCM packs store heat while charging and release it during short dips in solar input. " +
+  "They cannot provide unlimited backup; transition temperature and stored energy must be sized.");
+
+// Guarded heater in a separated metal plenum.
+const heaterGroup=new THREE.Group();dryer.add(heaterGroup);
+box(heaterGroup,.65,.13,.46,1.09,1.46,.61,steel);
+const heaterMat=mat(0x813c23,{emissive:0xff5b16,emissiveIntensity:0});
+for(let i=0;i<5;i++){
+  box(heaterGroup,.045,.03,.34,.86+i*.11,1.54,.61,heaterMat);
+}
+for(let i=0;i<6;i++) box(heaterGroup,.65,.01,.012,1.09,1.58,.43+i*.07,steel);
+interactive(heaterGroup,"Guarded auxiliary heater",
+  "Battery or grid-supported electrical heat warms the inlet plenum. " +
+  "A real build requires a thermostat, independent thermal cutoff, airflow interlock, " +
+  "and safe separation from plastic and combustible material.");
+
+const heatGlow=new THREE.PointLight(0xff7833,0,2);
+heatGlow.position.set(1.05,1.75,.6);dryer.add(heatGlow);
+
+// Sensor and controller display.
+const sensor=box(dryer,.20,.17,.09,1.43,2.03,-.48,green);
+interactive(sensor,"Temperature and humidity sensor",
+  "The controller uses chamber temperature and relative humidity to regulate fans and heat. " +
+  "Drying completion must be validated against product moisture, not humidity alone.");
+box(dryer,.52,.28,.08,.93,1.76,1.14,dark);
+label(dryer,"T / RH CONTROL",.93,1.78,1.20,.58);
+
+// Fans.
+const inlet=makeFan(dryer,-1.65,1.57,.38,-Math.PI/2);
+interactive(inlet,"DC inlet fan",
+  "Draws or pushes air from the solar collector into the lower drying plenum. " +
+  "Filtered ambient inlet air also needs a controllable path.");
+const exhaust=makeFan(dryer,.62,2.45,-1.15,Math.PI);
+interactive(exhaust,"Rear DC exhaust fan",
+  "Expels humid air from the upper chamber. Coordinated inlet and exhaust flow " +
+  "helps remove moisture; heating without moisture removal is not enough.");
+label(dryer,"MOIST AIR OUT",.75,2.98,-1.4,1.35);
+
+// Black cylindrical collector following the sketch.
+const collector=new THREE.Group();dryer.add(collector);
+cylinder(collector,.39,1.18,-2.49,.70,.05,black);
+cylinder(collector,.42,.06,-2.49,1.32,.05,dark);
+cylinder(collector,.42,.07,-2.49,.10,.05,steel);
+for(let i=0;i<7;i++){
+  const hole=new THREE.Mesh(new THREE.SphereGeometry(.035,8,6),steel);
+  hole.position.set(-2.49+Math.sin(i*.55-1.6)*.39,.30,
+    .05+Math.cos(i*.55-1.6)*.39);
+  collector.add(hole);
+}
+tube(collector,[[-2.49,1.34,.05],[-2.45,1.69,.05],
+  [-2.08,1.72,.27],[-1.66,1.57,.38]],0x485b66,.105);
+interactive(collector,"Black solar air collector",
+  "The black surface absorbs available sunlight and transfers some heat to incoming air. " +
+  "It is not an independent heater: low sunlight means limited output, and no sunlight means no new solar heat.");
+label(dryer,"SOLAR AIR COLLECTOR",-2.48,1.98,.05,1.9);
+
+// Under-chamber battery and electrical modules.
+const battery=new THREE.Group();dryer.add(battery);
+box(battery,.92,.50,.66,.69,.64,.05,dark);
+box(battery,.80,.32,.018,.69,.64,.39,green);
+for(const x of [.41,.96]) box(battery,.10,.09,.11,x,.93,.05,steel);
+label(battery,"BATTERY",.69,.65,.42,.73);
+interactive(battery,"Battery storage",
+  "Stores photovoltaic electricity for fans, controls, and a suitably sized heater. " +
+  "For scale: 300 watts for 7 continuous hours is 2.1 kilowatt-hours before losses. " +
+  "This animation does not calculate battery capacity.");
+
+const controller=box(dryer,.53,.34,.42,-.38,.56,.0,green);
+label(dryer,"MPPT",-.38,.57,.24,.43);
+interactive(controller,"Solar charge controller",
+  "Regulates photovoltaic charging. Select it together with the PV array, battery voltage, " +
+  "battery chemistry, protection, and expected charging current.");
+
+const charger=box(dryer,.52,.34,.42,-1.04,.56,0,steel);
+label(dryer,"CHARGER",-1.04,.57,.24,.52);
+interactive(charger,"Grid charger / power-path control",
+  "During extended rain, a compatible charger supports the DC system and battery. " +
+  "A proper load-sharing design avoids assuming every watt must cycle through the battery.");
+
+// Solar panel: stored underneath, deployed outward to avoid chamber shading.
+for(const x of [-.99,.99]) box(dryer,.045,.05,2.5,x,.27,1.03,steel);
+const solar=new THREE.Group();dryer.add(solar);
+const panelTilt=new THREE.Group();solar.add(panelTilt);
+box(panelTilt,2.32,.07,1.46,0,0,0,steel);
+box(panelTilt,2.22,.035,1.36,0,.055,0,mat(0x0a2147,{metalness:.4,roughness:.3}));
+for(let x=0;x<6;x++) for(let z=0;z<4;z++){
+  box(panelTilt,.342,.015,.303,-.90+x*.36,.08,-.48+z*.32,
+    mat((x+z)%2?0x173e73:0x205184,{metalness:.35,roughness:.3}));
+}
+label(panelTilt,"SLIDE-OUT SOLAR PV",0,.18,.71,1.75);
+interactive(solar,"Underbody slide-out solar panel",
+  "Click to deploy or retract. The panel is stored beneath the stand but must slide into " +
+  "unshaded sunlight to generate useful power. Shown panel size is illustrative, not heater sizing.",
+  ()=>togglePanel());
+
+// Household socket and cable.
+const gridUnit=new THREE.Group();dryer.add(gridUnit);
+box(gridUnit,.55,.65,.20,-3.57,.46,-1.38,white);
+box(gridUnit,.36,.37,.04,-3.57,.47,-1.25,dark);
+for(const x of [-3.64,-3.50]) box(gridUnit,.036,.095,.02,x,.5,-1.22,steel);
+label(dryer,"HOUSEHOLD SUPPLY",-3.48,1.07,-1.4,1.6);
+tube(dryer,[[-3.57,.34,-1.25],[-3.0,.13,-1.0],[-1.8,.14,-.7],[-1.04,.57,-.23]],0x243a48,.025);
+interactive(gridUnit,"Household electricity backup",
+  "Extended poor weather requires an adequately rated external energy source. " +
+  "Use certified mains equipment, grounding where required, and professional electrical installation.");
+
+// Weather objects.
+const weatherGroup=new THREE.Group();scene.add(weatherGroup);
+const sunMesh=new THREE.Mesh(new THREE.SphereGeometry(.34,24,16),
+  new THREE.MeshBasicMaterial({color:0xffd374}));
+sunMesh.position.set(-3.6,4.8,-2);weatherGroup.add(sunMesh);
+const clouds=new THREE.Group();weatherGroup.add(clouds);
+for(let i=0;i<5;i++){
+  const cloud=new THREE.Mesh(new THREE.SphereGeometry(.35+Math.random()*.1,16,12),
+    mat(0x9cb0c4,{roughness:1}));
+  cloud.scale.set(1.4,.65,.8);
+  cloud.position.set(-1.2+i*.52,4.4+Math.sin(i)*.12,-2.3);
+  clouds.add(cloud);
+}
+const rainGeo=new THREE.BufferGeometry();
+const rainPositions=new Float32Array(180*3);
+for(let i=0;i<180;i++){
+  rainPositions[i*3]=(Math.random()-.5)*7;
+  rainPositions[i*3+1]=Math.random()*4.5;
+  rainPositions[i*3+2]=(Math.random()-.5)*4;
+}
+rainGeo.setAttribute("position",new THREE.BufferAttribute(rainPositions,3));
+const rain=new THREE.Points(rainGeo,new THREE.PointsMaterial({
+  color:0x83bfff,size:.035,transparent:true,opacity:.6
+}));
+weatherGroup.add(rain);
+
+// Modes and explanatory content.
+const modes=[
+{
+ title:"1. Sunny day",
+ weather:"☀ SUNNY • SOLAR HEAT + CHARGING",
+ intro:"Sunlight supplies drying heat while a separate photovoltaic panel produces electricity.",
+ flow:"Sun → glazing / collector → warm air → trays → moist exhaust\nPV → charge controller → battery",
+ steps:[
+  "Deploy the underbody panel into unshaded sunlight.",
+  "Solar energy absorbed inside the chamber and collector warms incoming air.",
+  "DC fans distribute air through the trays and exhaust released moisture.",
+  "The charge controller replenishes battery energy when sufficient PV power is available."
+ ],
+ caution:"UV filtering reduces UV exposure, not all fragrance loss. Heating is controlled; do not assume a fixed drying time.",
+ speech:"In sunny mode, the solar panel slides out from beneath the stand into sunlight. " +
+ "Solar radiation warms the chamber and the black air collector. Fans carry warm air through " +
+ "two agarbatti trays, then release humid air through the rear outlet. Separately, the photovoltaic " +
+ "panel sends electricity through the charge controller to the battery. Optional phase change " +
+ "material can store some heat when conditions are suitable. Drying time and fragrance retention still require testing."
+},
+{
+ title:"2. Reduced sunlight",
+ weather:"⛅ LOW SUN • LIMITED SOLAR ASSIST",
+ intro:"The collector uses remaining sunlight; previously charged PCM can smooth short heat fluctuations.",
+ flow:"Remaining sun → collector → inlet air\nCharged PCM → short thermal support",
+ steps:[
+  "The black collector absorbs the sunlight that is still available.",
+  "The inlet fan moves collector-warmed air into the lower chamber.",
+  "Previously charged PCM can release stored heat during a short temperature dip.",
+  "If solar and stored heat are insufficient, auxiliary energy or a longer cycle is necessary."
+ ],
+ caution:"The black can cannot create additional energy. Low-sun performance depends on collector area, insulation, PCM charge, and backup capacity.",
+ speech:"When sunlight weakens, the black collector still captures available solar energy and " +
+ "the inlet fan carries that warmth into the dryer. If the optional phase change packs were " +
+ "charged earlier, they can release some stored heat. This smooths short interruptions. " +
+ "The collector is not an independent heat source, and phase change storage eventually runs out. " +
+ "If available energy is too low, electrical backup or more drying time is needed."
+},
+{
+ title:"3. Rain or nighttime",
+ weather:"🌧 RAIN / NIGHT • BATTERY BACKUP",
+ intro:"This scenario assumes the battery was sufficiently charged before sunlight became unavailable.",
+ flow:"Previously charged battery → controlled heater + fans → drying airflow",
+ steps:[
+  "Solar thermal heating is unavailable or too weak to rely on.",
+  "Stored battery energy supplies the fans, controller, and guarded heater.",
+  "Temperature feedback regulates electrical heating while moist air is exhausted.",
+  "Low-battery protection must stop or limit operation before excessive discharge."
+ ],
+ caution:"Backup duration is not calculated here. The illustrative panel and battery are not proof of overnight heater capacity.",
+ speech:"During rain or at night, this scenario assumes the battery has already been charged. " +
+ "Stored electrical energy operates the fans, controller, and guarded heating element. The " +
+ "heater warms inlet air while the exhaust removes moisture. The controller must regulate " +
+ "temperature and protect against overheating and low battery voltage. The available backup " +
+ "time depends on actual heater demand, battery capacity, and losses. It is not unlimited."
+},
+{
+ title:"4. Extended rainy weather",
+ weather:"🔌 EXTENDED RAIN • GRID-SUPPORTED",
+ intro:"Household electricity provides an external backup when solar charging is inadequate for several days.",
+ flow:"Household AC → compatible charger / DC power path → battery + drying loads",
+ steps:[
+  "Connect a certified, suitably rated household-power charger.",
+  "Its power path supports the DC loads and charges the battery as capacity permits.",
+  "The controlled heater and fans continue the drying process.",
+  "Solar operation can resume when sufficient sunlight returns."
+ ],
+ caution:"Grid backup improves availability but does not guarantee the proposed cycle time. Electrical protections and safe load sharing are essential.",
+ speech:"After several rainy days, the battery may no longer have enough stored energy. " +
+ "A certified household electricity charger then supports the DC power system and replenishes " +
+ "the battery when capacity allows. A suitable power path can supply the heater and fans " +
+ "without unnecessarily cycling all energy through the battery. The same temperature controls " +
+ "and safety cutoffs remain active. When sunlight returns, the system can switch back to solar operation."
+},
+{
+ title:"Packaging demonstration",
+ weather:"📦 MANUAL PAPER PACKAGING",
+ intro:"Your low-equipment packaging idea is shown as a proposed workflow, not a proven aroma or moisture barrier.",
+ flow:"Verify dryness → cool in protected air → load paper sachet → apply adhesive → press and cure",
+ steps:[
+  "Confirm dryness and cool the agarbattis in a clean, protected area.",
+  "Place the sticks into a suitable paper sachet without bending or crushing them.",
+  "Apply a small amount of freshly prepared starch adhesive to the flap and press closed.",
+  "Let the adhesive dry, then test seal integrity, humidity resistance, fragrance retention, and shelf life."
+ ],
+ caution:"Glassine and “butter paper” are not interchangeable. Some coatings resist starch glue. Paper with homemade paste is not automatically moisture-proof, aroma-proof, or 100% eco-friendly.",
+ speech:"For packaging, first verify that the agarbattis are dry, then allow them to cool in " +
+ "protected air. Place the sticks in a suitable paper sachet. Apply a small amount of starch " +
+ "paste to the flap, press the flap closed, and allow the adhesive to dry. This avoids a powered " +
+ "sealer, but it does not automatically provide a strong moisture or fragrance barrier. " +
+ "The actual paper and adhesive must be tested for humidity resistance, seal strength, aroma retention, and shelf life."
+}
+];
+
+let mode=0, panelDeployed=true, lidOpen=false, cutaway=false;
+let touring=false, tourStart=0, tourDuration=1, stageTime=0;
+let cameraGoal=null, targetGoal=null;
+
+const solarOn=()=> mode<2 && panelDeployed;
+const heating=()=>mode===2||mode===3;
+const drying=()=>mode<4;
+
+// Animated air routes.
+movingPath(dryer,[[-2.49,.3,.47],[-2.49,.8,.1],[-2.49,1.36,.05],
+ [-2.1,1.7,.25],[-1.65,1.57,.38]],0x59cfff,()=>mode<2,12);
+
+for(const x of [-.85,0,.85]){
+ movingPath(dryer,[[x,1.40,1.28],[x,1.51,.68],[x,1.82,.15],
+ [x,2.08,-.52],[.62,2.43,-1.08]],0xffa752,drying,15);
+}
+movingPath(dryer,[[.62,2.45,-1.16],[.62,2.54,-1.6],
+ [.72,2.95,-2.1],[.95,3.45,-2.4]],0xb1ebff,drying,14);
+
+movingPath(dryer,[[0,.43,2.25],[-.40,.32,1.2],[-.38,.57,.25]],
+ 0x80ffad,solarOn,10);
+movingPath(dryer,[[-.38,.57,.25],[.12,.52,.44],[.69,.66,.44]],
+ 0x80ffad,solarOn,8);
+movingPath(dryer,[[.69,.91,.03],[1.3,1.03,.3],[1.09,1.53,.61]],
+ 0x80ffad,heating,10);
+movingPath(dryer,[[-3.57,.4,-1.23],[-3,.18,-1],[-1.8,.18,-.7],[-1.04,.57,-.23]],
+ 0x80ffad,()=>mode===3,13);
+movingPath(dryer,[[-1.04,.57,.25],[-.34,.76,.50],[.69,.70,.44]],
+ 0x80ffad,()=>mode===3,10);
+movingPath(dryer,[[0,1.43,-.12],[0,1.57,-.10],[0,1.85,-.2]],
+ 0xffd083,()=>mode===1&&$("pcm").checked,6);
+
+// Packaging station.
+const packaging=new THREE.Group();scene.add(packaging);packaging.visible=false;
+box(packaging,4.9,.13,2.3,0,1.04,0,mat(0xb7a185));
+for(const x of [-2.15,2.15]) for(const z of [-.86,.86])
+ box(packaging,.08,1,.08,x,.5,z,steel);
+
+const paperMat=mat(0xe4cea4,{side:THREE.DoubleSide,roughness:.95});
+const packet=new THREE.Group();packaging.add(packet);
+packet.position.set(.35,1.13,.05);
+box(packet,1.2,.012,1.72,0,0,0,paperMat);
+for(let i=0;i<13;i++)
+ box(packet,.035,.03,1.4,-.38+i*.062,.04,0,brown);
+
+// Paper sides create an open sachet.
+box(packet,.14,.07,1.72,-.55,.04,0,paperMat);
+box(packet,.14,.07,1.72,.55,.04,0,paperMat);
+const packetFront=box(packet,1.1,.016,1.51,0,.085,.10,
+  mat(0xe4cea4,{transparent:true,opacity:.78}));
+const flap=new THREE.Group();flap.position.set(0,.09,-.86);packet.add(flap);
+box(flap,1.2,.014,.45,0,0,-.225,paperMat);
+const glue=box(flap,1.05,.014,.045,0,.014,-.37,mat(0xf6eed4));
+const press=box(packaging,1.3,.09,.45,.35,1.9,-.61,steel);
+
+const bowl=cylinder(packaging,.29,.15,-1.34,1.17,.25,white);
+cylinder(packaging,.245,.012,-1.34,1.253,.25,mat(0xf4e9cf));
+box(packaging,.06,.035,.65,-1.25,1.30,.10,brown);
+label(packaging,"STARCH PASTE",-1.36,1.63,.25,1.15);
+label(packaging,"PAPER SACHET",.40,1.74,.8,1.45);
+label(packaging,"COOL • FILL • GLUE • PRESS ",0,2.55,0,3.5);
+interactive(bowl,"Starch adhesive proposal",
+ "Fresh starch paste is a low-equipment adhesive option. Water content, spoilage, " +
+ "paper compatibility, curing time, and humid-storage strength must be assessed.");
+interactive(packet,"Paper sachet proposal",
+ "The cutaway reveals the sticks inside. Material barrier properties and seal performance " +
+ "need testing; plain paper or glassine alone may not protect adequately in humid storage.");
+
+// UI and narration.
+function narrationText(){
+ const m=modes[mode];
+ return m.speech + (mode===1&&!$("pcm").checked
+  ?" Phase change storage is currently hidden and should not be counted as available support."
+  :"");
+}
+function stopVoice(){
+ if("speechSynthesis" in window) speechSynthesis.cancel();
+}
+function speak(){
+ stopVoice();
+ if(!("speechSynthesis" in window)){
+  $("inspectText").textContent="Speech is unavailable in this browser. The full explanation is shown above.";
+  return;
+ }
+ const utterance=new SpeechSynthesisUtterance(narrationText());
+ utterance.lang="en-IN";utterance.rate=.94;
+ const voices=speechSynthesis.getVoices();
+ const chosen=voices.find(v=>v.lang==="en-IN")||voices.find(v=>v.lang.startsWith("en"));
+ if(chosen) utterance.voice=chosen;
+ speechSynthesis.speak(utterance);
+}
+function focus(position,target){
+ cameraGoal=new THREE.Vector3(...position);
+ targetGoal=new THREE.Vector3(...target);
+}
+function updatePanelButton(){
+ $("panelBtn").textContent=panelDeployed?"Retract solar panel":"Deploy solar panel";
+}
+function togglePanel(){
+ if(mode===4) setMode(0);
+ panelDeployed=!panelDeployed;updatePanelButton();
+ if(panelDeployed) focus([4,3.2,6.8],[0,.8,1.6]);
+ $("inspectTitle").textContent=panelDeployed?"Solar panel deployed":"Solar panel stored";
+ $("inspectText").textContent=panelDeployed
+  ?"The panel slides from under the stand and tilts toward sunlight. Keep it clear of chamber shadows. Illustrative size only."
+  :"The panel is stored below the dryer. PV energy animation is stopped: a shaded, stowed panel is not treated as useful generation.";
+}
+function toggleLid(){
+ lidOpen=!lidOpen;
+ $("lidBtn").textContent=lidOpen?"Close lid":"Open lid";
+ $("inspectTitle").textContent="Inspection lid";
+ $("inspectText").textContent=lidOpen
+  ?"The lid is open for viewing the trays. Real drying requires it closed; animated airflow remains conceptual."
+  :"Close and seal the lid during drying for controlled airflow.";
+}
+function stopTour(){
+ touring=false;$("tour").textContent="▶ 5. Run complete simulation";
+ $("progress").firstElementChild.style.width="0%";
+}
+function setMode(index,fromTour=false){
+ if(!fromTour) stopTour();
+ stopVoice();mode=index;stageTime=0;
+ const m=modes[index];
+ $("title").textContent=m.title;$("intro").textContent=m.intro;
+ $("flow").textContent=m.flow;$("flow").style.whiteSpace="pre-line";
+ $("steps").replaceChildren(...m.steps.map(text=>{
+  const li=document.createElement("li");li.textContent=text;return li;
+ }));
+ $("caution").textContent=m.caution;$("weather").textContent=m.weather;
+ document.querySelectorAll(".mode").forEach(b=>
+  b.classList.toggle("active",Number(b.dataset.mode)===mode));
+ dryer.visible=index!==4;packaging.visible=index===4;
+ weatherGroup.visible=index!==4;
+ sunMesh.visible=index<2;clouds.visible=index>0&&index<4;
+ rain.visible=index===2||index===3;
+ sunLight.intensity=index===0?3:index===1?1.8:1.1;
+ if(index<2){panelDeployed=true;updatePanelButton();}
+ if(index===4) focus([4.3,4.6,6.4],[0,1.25,0]);
+ else focus([7,5.9,8.8],[0,1.4,.4]);
+ $("packBtn").textContent=index===4?"Return to dryer":"Packaging view";
+ $("tourStatus").textContent=fromTour
+  ?`Guided tour: stage ${index+1} of 5.`
+  :"Illustrative operating mode. Click components to inspect.";
+ if($("voice").checked) speak();
+ if(fromTour){
+  tourStart=performance.now();
+  // Enough reading time for the spoken explanation at a moderate rate.
+  tourDuration=Math.max(26000,narrationText().split(/\s+/).length/1.85*1000+4000);
+ }
+}
+document.querySelectorAll(".mode").forEach(b=>
+ b.onclick=()=>setMode(Number(b.dataset.mode)));
+$("tour").onclick=()=>{
+ if(touring){stopTour();stopVoice();$("tourStatus").textContent="Guided tour stopped.";return;}
+ touring=true;$("tour").textContent="■ Stop complete simulation";
+ setMode(0,true);
+};
+$("home").onclick=()=>focus(mode===4?[4.3,4.6,6.4]:[7,5.9,8.8],
+ mode===4?[0,1.25,0]:[0,1.4,.4]);
+$("lidBtn").onclick=toggleLid;
+$("panelBtn").onclick=togglePanel;
+$("cutBtn").onclick=()=>{
+ cutaway=!cutaway;
+ shells.forEach(s=>s.visible=!cutaway);
+ $("cutBtn").textContent=`Cutaway: ${cutaway?"ON":"OFF"}`;
+};
+$("packBtn").onclick=()=>setMode(mode===4?0:4);
+$("pcm").onchange=()=>pcmGroup.visible=$("pcm").checked;
+$("speak").onclick=speak;
+$("mute").onclick=stopVoice;
+$("voice").onchange=()=>{$("voice").checked?speak():stopVoice();};
+window.addEventListener("beforeunload",stopVoice);
+
+// Component picking; distinguish a click from orbit dragging.
+const raycaster=new THREE.Raycaster();
+const pointer=new THREE.Vector2();
+let down=null;
+controls.addEventListener("start",()=>{cameraGoal=null;targetGoal=null;});
+renderer.domElement.addEventListener("pointerdown",e=>{down=[e.clientX,e.clientY];});
+function isVisible(object){
+ for(let p=object;p;p=p.parent) if(!p.visible) return false;
+ return true;
+}
+renderer.domElement.addEventListener("pointerup",e=>{
+ if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>6) return;
+ const r=renderer.domElement.getBoundingClientRect();
+ pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
+ raycaster.setFromCamera(pointer,camera);
+ const hits=raycaster.intersectObjects(pickables,false).filter(h=>isVisible(h.object));
+ if(!hits.length) return;
+ let object=hits[0].object;
+ while(object&&!object.userData.info) object=object.parent;
+ if(!object) return;
+ const info=object.userData.info;
+ $("inspectTitle").textContent=info.title;$("inspectText").textContent=info.text;
+ if(info.action) info.action();
+});
+
+function resize(){
+ const w=stage.clientWidth,h=stage.clientHeight;
+ camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);
+}
+new ResizeObserver(resize).observe(stage);
+resize();
+
+const clock=new THREE.Clock();
+let time=0;
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.05);time+=dt;stageTime+=dt;
+ const smooth=1-Math.exp(-dt*5);
+
+ solar.position.y=THREE.MathUtils.lerp(solar.position.y,panelDeployed?.44:.23,smooth);
+ solar.position.z=THREE.MathUtils.lerp(solar.position.z,panelDeployed?2.42:.04,smooth);
+ panelTilt.rotation.x=THREE.MathUtils.lerp(panelTilt.rotation.x,panelDeployed?.27:0,smooth);
+ lid.rotation.x=THREE.MathUtils.lerp(lid.rotation.x,lidOpen?slope-1.05:slope,smooth);
+
+ for(const rotor of fans) rotor.rotation.z-=dt*(mode<4?13:0);
+ heaterMat.emissiveIntensity=heating()?1.4+.25*Math.sin(time*5):0;
+ heatGlow.intensity=heating()?2.1:0;
+
+ for(const item of animatedPaths){
+  const active=item.enabled()&&dryer.visible;
+  item.line.visible=active;
+  item.particles.forEach((particle,i)=>{
+   particle.visible=active;
+   if(active) particle.position.copy(item.path.getPointAt(
+    (time*.16+i/item.particles.length)%1));
+  });
+ }
+
+ if(rain.visible){
+  for(let i=0;i<180;i++){
+   rainPositions[i*3+1]-=dt*2.4;
+   if(rainPositions[i*3+1]<.05) rainPositions[i*3+1]=4.5;
+  }
+  rainGeo.attributes.position.needsUpdate=true;
+ }
+ clouds.position.x=Math.sin(time*.18)*.3;
+
+ if(mode===4){
+  // Repeating illustrative fill / glue / fold / press sequence.
+  const p=(stageTime%20)/20;
+  packetFront.material.opacity=p<.25?.25:.78;
+  glue.visible=p>.25;
+  flap.rotation.x=p<.40?0:
+   -Math.PI*THREE.MathUtils.smoothstep(p,.40,.68);
+  press.visible=p>.70&&p<.88;
+  press.position.y=1.9-.59*Math.sin(
+   THREE.MathUtils.clamp((p-.70)/.18,0,1)*Math.PI);
+ }
+
+ if(cameraGoal&&targetGoal){
+  camera.position.lerp(cameraGoal,smooth);
+  controls.target.lerp(targetGoal,smooth);
+  if(camera.position.distanceTo(cameraGoal)<.015){
+   cameraGoal=null;targetGoal=null;
+  }
+ }
+
+ if(touring){
+  const progress=Math.min((performance.now()-tourStart)/tourDuration,1);
+  $("progress").firstElementChild.style.width=`${progress*100}%`;
+  const speaking=$("voice").checked&&
+   "speechSynthesis" in window&&speechSynthesis.speaking;
+  if(progress>=1&&!speaking){
+   if(mode<4) setMode(mode+1,true);
+   else{
+    stopTour();
+    $("tourStatus").textContent="Tour complete: all four energy modes and packaging explained.";
+   }
+  }
+ }
+ controls.update();renderer.render(scene,camera);
+}
+setMode(0);
+$("load").style.display="none";
+animate();
+</script>
+</body>
+</html>

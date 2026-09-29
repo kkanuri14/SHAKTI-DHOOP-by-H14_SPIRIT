@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shakti Dhoop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top: #F2FBEF;
+    --sky-mid: #DDF3D7;
+    --sky-low: #B9E6AE;
+
+    --ink: #5A331E;
+    --ink-dim: #9C7659;
+
+    --sun: #E8622C;
+    --sun-soft: #FFDCA8;
+    --sun-softer: #FFB37A;
+
+    --drop: #1E8A9E;
+    --drop-soft: #C9EFF2;
+    --drop-softer: #8FD3DC;
+
+    --card-bg: rgba(255, 251, 244, 0.72);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{ margin: 0; padding: 0; min-height: 100vh; }
+
+  body{
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--ink);
+    background: linear-gradient(160deg, var(--sky-top) 0%, var(--sky-mid) 48%, var(--sky-low) 100%);
+    background-attachment: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+
+  .sunglow{
+    position: absolute;
+    top: -220px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 640px;
+    height: 640px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(185,230,174,0.9) 0%, rgba(185,230,174,0.35) 45%, rgba(185,230,174,0) 72%);
+    animation: breathe 6s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes breathe{
+    0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); }
+    50%      { opacity: 1;    transform: translateX(-50%) scale(1.05); }
+  }
+
+  .page{ width: 100%; max-width: 760px; position: relative; z-index: 1; }
+
+  header{ text-align: center; margin-bottom: 44px; }
+
+  h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-optical-sizing: auto;
+    font-size: clamp(2.4rem, 7vw, 4rem);
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+    color: var(--ink);
+    text-shadow: 0 2px 18px rgba(255, 255, 255, 0.5);
+  }
+
+  .tagline{
+    color: var(--ink-dim);
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+  }
+
+  .status{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    background: rgba(255,255,255,0.55);
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+
+  .dot{
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #4C9A5F;
+    box-shadow: 0 0 0 0 rgba(76,154,95,0.55);
+    animation: pulse 2.4s ease-out infinite;
+  }
+  .dot.down{ background: #C0432F; animation: none; }
+
+  @keyframes pulse{
+    0%   { box-shadow: 0 0 0 0 rgba(76,154,95,0.45); }
+    70%  { box-shadow: 0 0 0 8px rgba(76,154,95,0); }
+    100% { box-shadow: 0 0 0 0 rgba(76,154,95,0); }
+  }
+
+  .boxes{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+
+  @media (max-width: 560px){
+    .boxes{ grid-template-columns: 1fr; }
+  }
+
+  .box{
+    border-radius: 22px;
+    padding: 34px 26px;
+    text-align: center;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 18px 40px -18px rgba(90, 51, 30, 0.35);
+    animation: rise 0.7s ease both;
+  }
+
+  .box.temp{ background: rgba(255, 235, 214, 0.78); }
+  .box.humidity{ background: rgba(222, 246, 248, 0.78); }
+
+  .box.temp{ animation-delay: 0.05s; }
+  .box.humidity{ animation-delay: 0.18s; }
+
+  @keyframes rise{
+    from{ opacity: 0; transform: translateY(14px); }
+    to  { opacity: 1; transform: translateY(0); }
+  }
+
+  .icon-wrap{
+    width: 60px; height: 60px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .box.temp .icon-wrap{ background: linear-gradient(160deg, var(--sun-soft), var(--sun-softer)); }
+  .box.humidity .icon-wrap{ background: linear-gradient(160deg, var(--drop-soft), var(--drop-softer)); }
+
+  .value{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(2.8rem, 8vw, 3.6rem);
+    line-height: 1;
+    transition: opacity 0.25s ease;
+  }
+
+  .value .unit{
+    font-size: 0.4em;
+    color: var(--ink-dim);
+    margin-left: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .box.temp .value{ color: var(--sun); }
+  .box.humidity .value{ color: var(--drop); }
+
+  .label{
+    margin-top: 12px;
+    font-size: 0.82rem;
+    color: var(--ink-dim);
+    letter-spacing: 0.02em;
+  }
+
+  .flash{ animation: flash 0.6s ease; }
+  @keyframes flash{
+    0%   { opacity: 0.35; }
+    100% { opacity: 1; }
+  }
+
+  footer{
+    margin-top: 26px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.74rem;
+    color: var(--ink-dim);
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 4px;
+  }
+
+  .error-banner{
+    margin-top: 20px;
+    border: 1px solid rgba(192, 67, 47, 0.35);
+    background: rgba(255, 232, 224, 0.8);
+    color: #A8422E;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    display: none;
+    text-align: center;
+  }
+
+  .error-banner.show{ display: block; }
+</style>
+</head>
+<body>
+
+<div class="sunglow"></div>
+
+<div class="page">
+  <header>
+    <h1>Shakti Dhoop</h1>
+    <div class="tagline">Live cabin conditions</div>
+    <div class="status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Connecting…</span>
+    </div>
+  </header>
+
+  <div class="boxes">
+    <div class="box temp">
+      <div class="icon-wrap">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="5" fill="#E8622C"/>
+          <g stroke="#E8622C" stroke-width="1.8" stroke-linecap="round">
+            <line x1="12" y1="1.5" x2="12" y2="4.2"/>
+            <line x1="12" y1="19.8" x2="12" y2="22.5"/>
+            <line x1="1.5" y1="12" x2="4.2" y2="12"/>
+            <line x1="19.8" y1="12" x2="22.5" y2="12"/>
+            <line x1="4.4" y1="4.4" x2="6.3" y2="6.3"/>
+            <line x1="17.7" y1="17.7" x2="19.6" y2="19.6"/>
+            <line x1="4.4" y1="19.6" x2="6.3" y2="17.7"/>
+            <line x1="17.7" y1="6.3" x2="19.6" y2="4.4"/>
+          </g>
+        </svg>
+      </div>
+      <div class="value" id="tempValue">—<span class="unit">°C</span></div>
+      <div class="label">Temperature</div>
+    </div>
+
+    <div class="box humidity">
+      <div class="icon-wrap">
+        <svg width="26" height="30" viewBox="0 0 24 28" fill="none">
+          <path d="M12 1.5C12 1.5 3.5 12.2 3.5 18.2C3.5 23.1 7.3 26.5 12 26.5C16.7 26.5 20.5 23.1 20.5 18.2C20.5 12.2 12 1.5 12 1.5Z" fill="#1E8A9E"/>
+          <path d="M8.2 18.5C8.2 20.7 9.9 22.4 12 22.6" stroke="#C9EFF2" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="value" id="humidityValue">—<span class="unit">%</span></div>
+      <div class="label">Humidity</div>
+    </div>
+  </div>
+
+  <div class="error-banner" id="errorBanner">
+    Couldn't reach the sensor feed. Retrying automatically…
+  </div>
+
+  <footer>
+    <span id="lastUpdated">Last updated: —</span>
+    <span id="countdown">Refreshing in 15s</span>
+  </footer>
+</div>
+
+<script>
+  const CHANNEL_ID = "3491231";
+  const READ_API_KEY = "JYH6IL9NY93VRZD0";
+  const FEED_URL = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=1`;
+  const REFRESH_SECONDS = 15;
+
+  const tempEl = document.getElementById('tempValue');
+  const humidityEl = document.getElementById('humidityValue');
+  const lastUpdatedEl = document.getElementById('lastUpdated');
+  const countdownEl = document.getElementById('countdown');
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const errorBanner = document.getElementById('errorBanner');
+
+  let secondsLeft = REFRESH_SECONDS;
+
+  function formatTime(dateStr){
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function flash(el){
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  }
+
+  async function fetchReadings(){
+    try {
+      const res = await fetch(FEED_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error('Network response was not ok');
+      const data = await res.json();
+      const feed = data.feeds && data.feeds[0];
+
+      if (!feed) throw new Error('No feed data returned');
+
+      const temp = feed.field1;
+      const humidity = feed.field2;
+
+      tempEl.innerHTML = (temp !== null && temp !== undefined && temp !== "")
+        ? `${parseFloat(temp).toFixed(1)}<span class="unit">°C</span>`
+        : `—<span class="unit">°C</span>`;
+
+      humidityEl.innerHTML = (humidity !== null && humidity !== undefined && humidity !== "")
+        ? `${parseFloat(humidity).toFixed(1)}<span class="unit">%</span>`
+        : `—<span class="unit">%</span>`;
+
+      flash(tempEl);
+      flash(humidityEl);
+
+      lastUpdatedEl.textContent = `Last updated: ${formatTime(feed.created_at)}`;
+      statusDot.classList.remove('down');
+      statusText.textContent = 'Live';
+      errorBanner.classList.remove('show');
+    } catch (err) {
+      statusDot.classList.add('down');
+      statusText.textContent = 'Connection issue';
+      errorBanner.classList.add('show');
+    }
+  }
+
+  function tick(){
+    secondsLeft -= 1;
+    if (secondsLeft <= 0){
+      fetchReadings();
+      secondsLeft = REFRESH_SECONDS;
+    }
+    countdownEl.textContent = `Refreshing in ${secondsLeft}s`;
+  }
+
+  fetchReadings();
+  setInterval(tick, 1000);
+</script>
+
+</body>
+</html>
